@@ -1,11 +1,4 @@
 {
-<<<<<<< HEAD
-  "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
-=======
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
@@ -23,5 +16,4 @@
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
->>>>>>> 9eebecb56f80238c21bb8b6f120ea0e8b0de3224
 }
