@@ -1,7 +1,7 @@
-/**
- * M8 — Validity gate
+﻿/**
+ * M8 â€” Validity gate
  *
- * PURE — no I/O, no clock, no randomness.
+ * PURE â€” no I/O, no clock, no randomness.
  * SOLE AUTHORITY to produce INVALID verdicts.
  * Never widens tolerances. Never infers when unresolved.
  */
@@ -15,18 +15,18 @@ import type {
 } from '../../contracts';
 import { LOCKED_SAMPLING } from '../../config';
 
-// ─── resolveTolerance ────────────────────────────────────────────────────────
-// B-4: Returns null if page size cannot be resolved → runner must REFUSE to start
+// â”€â”€â”€ resolveTolerance â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// B-4: Returns null if page size cannot be resolved â†’ runner must REFUSE to start
 export function resolveTolerance(fingerprint: ServerFingerprint): number | null {
   const { pageSize } = fingerprint;
   if (typeof pageSize !== 'number' || pageSize <= 0) {
-    return null; // Cannot resolve → runner refuses to start
+    return null; // Cannot resolve â†’ runner refuses to start
   }
-  // §5.3: page_size == 1 → tolerance 0; page_size > 1 → tolerance = page_size
+  // Â§5.3: page_size == 1 â†’ tolerance 0; page_size > 1 â†’ tolerance = page_size
   return pageSize === 1 ? 0 : pageSize;
 }
 
-// ─── assertCold ──────────────────────────────────────────────────────────────
+// â”€â”€â”€ assertCold â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // B-3: First request cached_tokens must be within resolved tolerance
 export function assertCold(
   firstRecord: TelemetryRecord,
@@ -53,7 +53,7 @@ export function assertCold(
   };
 }
 
-// ─── assertSettingsEqual ──────────────────────────────────────────────────────
+// â”€â”€â”€ assertSettingsEqual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // B-1: Effective sampling params must match the locked set in both runs
 export function assertSettingsEqual(
   rawSettings: SamplingParams,
@@ -88,7 +88,7 @@ export function assertSettingsEqual(
   };
 }
 
-// ─── assertContentEqual ──────────────────────────────────────────────────────
+// â”€â”€â”€ assertContentEqual â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // F-5: Component content must be byte-identical between raw and normalized runs
 export function assertContentEqual(
   rawRun: RunDocument & { componentHashes?: string[] },
@@ -120,7 +120,7 @@ export function assertContentEqual(
   };
 }
 
-// ─── assertServerUnchanged ────────────────────────────────────────────────────
+// â”€â”€â”€ assertServerUnchanged â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // B-9: Server fingerprint must match between raw and normalized runs
 export function assertServerUnchanged(
   fpA: ServerFingerprint,
@@ -146,7 +146,7 @@ export function assertServerUnchanged(
   };
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function invalidVerdict(
   reason: ValidityVerdict['reason'],
   evidence: Record<string, unknown>
@@ -157,3 +157,4 @@ export function invalidVerdict(
 export function validVerdict(evidence: Record<string, unknown>): ValidityVerdict {
   return { valid: true, evidence };
 }
+

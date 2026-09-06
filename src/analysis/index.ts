@@ -7,6 +7,7 @@
  */
 
 import type { TelemetryRecord, ComparisonDoc, Diagnostic, DerivedFields, RunId } from '../contracts';
+// import { LOCKED_SAMPLING } from "../config";
 
 // ─── longestCommonPrefix ──────────────────────────────────────────────────────
 export function longestCommonPrefix(a: number[], b: number[]): number {
@@ -115,8 +116,8 @@ export function compare(
   const rawTotal = rawRecords.reduce((s, r) => s + r.native.cachedTokens, 0);
   const normTotal = normRecords.reduce((s, r) => s + r.native.cachedTokens, 0);
 
-  const rawRatios = rawRecords.map((record) => reuseRatio(record.native));
-  const normRatios = normRecords.map((record) => reuseRatio(record.native));
+ const rawRatios = rawRecords.map((record) => reuseRatio(record.native));
+ const normRatios = normRecords.map((record) => reuseRatio(record.native));
 
   const rawAvgRatio = rawRatios.reduce((s, r) => s + r, 0) / (rawRatios.length || 1);
   const normAvgRatio = normRatios.reduce((s, r) => s + r, 0) / (normRatios.length || 1);

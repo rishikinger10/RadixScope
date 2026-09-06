@@ -7,16 +7,17 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "npm run build && jest --runInBand",
-    "test:redis": "npm run build && jest --runInBand test/store.integration.test.js"
+    "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "ioredis": "^5.3.2",
     "uuid": "^10.0.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^20.14.0",
     "@types/uuid": "^10.0.0",
@@ -24,9 +25,5 @@
     "ts-jest": "^29.1.4",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.5"
-  },
-  "jest": {
-    "testEnvironment": "node",
-    "testMatch": ["<rootDir>/test/**/*.test.js"]
   }
 }

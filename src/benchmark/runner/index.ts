@@ -47,52 +47,58 @@ export class RunInProgressError extends Error {
 }
 
 // In-process single-flight guard (I-1, M7 rule)
-let isRunning = false;
+let running = false;
 let currentAbortController: AbortController | null = null;
+export function isRunning(): boolean {
+    return running;
+}
 
 /**
  * M7: Benchmark runner state machine
  * Takes the lock, creates the run doc, returns 202, and continues async.
  */
-export async function startRun(normalizeSecondRun: boolean): Promise<RunId> {
-  if (isRunning) {
-    throw new RunInProgressError();
-  }
+export async function startRun(options: {
+    normalizeSecondRun: boolean;
+}): Promise<{ runId: RunId }> {
+    if (running) {
+        throw new RunInProgressError();
+    }
 
-  isRunning = true;
+    running = true;
+    const { normalizeSecondRun } = options;
 
-  const runId = uuidv4() as RunId;
-  const doc: RunDocument & { componentHashes?: string[] } = {
-    runId,
-    phase: 'QUEUED',
-    startedAt: Date.now(),
-    normalizeSecondRun,
-    samplingParams: LOCKED_SAMPLING,
-  };
+    const runId = uuidv4() as RunId;
+    const doc: RunDocument & { componentHashes?: string[] } = {
+        runId,
+        phase: "QUEUED",
+        startedAt: Date.now(),
+        normalizeSecondRun,
+        samplingParams: LOCKED_SAMPLING,
+    };
 
-  currentAbortController = new AbortController();
+    currentAbortController = new AbortController();
 
-  try {
-    await createRun(doc);
-    await markRunActive(runId);
+    try {
+        await createRun(doc);
+        await markRunActive(runId);
 
-    // Fire and forget
-    setImmediate(() => {
-      runBenchmark(runId, normalizeSecondRun, doc, currentAbortController!.signal)
-        .catch((err) => handleFatalError(runId, err))
-        .finally(async () => {
-          isRunning = false;
-          currentAbortController = null;
-          await clearRunActive();
+        // Fire and forget
+        setImmediate(() => {
+            runBenchmark(runId, normalizeSecondRun, doc, currentAbortController!.signal)
+                .catch((err) => handleFatalError(runId, err))
+                .finally(async () => {
+                    running = false;
+                    currentAbortController = null;
+                    await clearRunActive();
+                });
         });
-    });
 
-    return runId;
-  } catch (error) {
-    isRunning = false;
-    currentAbortController = null;
-    throw error;
-  }
+        return {runId};
+    } catch (error) {
+        running = false;
+        currentAbortController = null;
+        throw error;
+    }
 }
 
 async function handleFatalError(runId: RunId, err: unknown) {
@@ -126,7 +132,7 @@ async function runBenchmark(
     // PREFLIGHT
     // ---------------------------------------------------------
     await updateRunPhase(runId, 'PREFLIGHT');
-    
+
     // M3.serverInfo()
     const fingerprint = await serverInfo(signal);
     await putFingerprint(runId, fingerprint);
@@ -323,7 +329,7 @@ async function runBenchmark(
     // COMPARE
     // ---------------------------------------------------------
     await updateRunPhase(runId, 'COMPARE');
-    
+
     // Sort raw doc's hashes too (to compare with sorted norm hashes)
     if (doc.componentHashes) {
         doc.componentHashes.sort();
@@ -349,7 +355,7 @@ async function runBenchmark(
 
     const compDoc = compare(runId, rawRecords, normRecords);
     await putComparison(runId, compDoc);
-    
+
     // COMPLETE
     await updateRunPhase(runId, 'COMPLETE');
     await putVerdict(runId, validVerdict({}));

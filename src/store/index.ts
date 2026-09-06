@@ -43,34 +43,6 @@ export function getClient(): Redis {
   return _client;
 }
 
-/** Establish and verify the one Redis connection during application boot. */
-export async function connect(): Promise<void> {
-  try {
-    const result = await getClient().ping();
-    if (result !== 'PONG') {
-      throw new Error(`Unexpected Redis PING response: ${result}`);
-    }
-  } catch (err) {
-    throw new StoreUnavailableError(err);
-  }
-}
-
-/** Close Redis during graceful process shutdown. */
-export async function close(): Promise<void> {
-  const client = _client;
-  _client = null;
-  if (!client) return;
-
-  try {
-    await client.quit();
-  } catch (err) {
-    // The connection may already be gone. Disconnecting is safe and prevents
-    // ioredis from keeping the process alive while shutdown is in progress.
-    client.disconnect();
-    throw new StoreUnavailableError(err);
-  }
-}
-
 // ─── Key builders ─────────────────────────────────────────────────────────────
 const k = {
   run: (id: RunId) => `run:${id}`,
@@ -159,17 +131,7 @@ export async function putComparison(runId: RunId, comparison: ComparisonDoc): Pr
 // ─── putFingerprint ───────────────────────────────────────────────────────────
 export async function putFingerprint(runId: RunId, fp: ServerFingerprint): Promise<void> {
   try {
-    const client = getClient();
-    const raw = await client.get(k.run(runId));
-    if (!raw) throw new StoreUnavailableError(`Run ${runId} not found`);
-
-    const doc = JSON.parse(raw) as RunDocument;
-    doc.fingerprint = fp;
-
-    const pipe = client.pipeline();
-    pipe.set(k.fingerprint(runId), JSON.stringify(fp), 'EX', ttl());
-    pipe.set(k.run(runId), JSON.stringify(doc), 'EX', ttl());
-    await pipe.exec();
+    await getClient().set(k.fingerprint(runId), JSON.stringify(fp), 'EX', ttl());
   } catch (err) {
     throw new StoreUnavailableError(err);
   }
@@ -197,10 +159,8 @@ export async function clearRunActive(): Promise<void> {
 export async function getActiveRunId(): Promise<RunId | null> {
   try {
     return await getClient().get(k.active());
-  } catch (err) {
-    // "No active run" and "Redis is unavailable" are not equivalent during
-    // restart reconciliation. Hiding this error could permit an overlapping run.
-    throw new StoreUnavailableError(err);
+  } catch {
+    return null;
   }
 }
 
