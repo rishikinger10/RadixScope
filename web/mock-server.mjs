@@ -101,6 +101,19 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (req.method === 'GET' && req.url === '/api/runs') {
+    const summaries = Array.from(runs.values()).map(r => {
+      return {
+        runId: r.id,
+        phase: PHASES[r.phaseIndex],
+        startTime: r.startedAt
+      };
+    }).sort((a,b) => b.startTime - a.startTime);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ runs: summaries }));
+    return;
+  }
+
   if (req.method === 'GET' && req.url.startsWith('/api/benchmark/')) {
     const runId = req.url.split('/').pop();
     const state = runs.get(runId);
