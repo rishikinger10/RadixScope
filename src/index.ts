@@ -49,7 +49,7 @@ export function createApplication(dependencies: ApplicationDependencies): Expres
   return app;
 }
 
-async function reconcileOrphanRun(): Promise<void> {
+export async function reconcileOrphanRun(): Promise<void> {
   const activeRunId = await store.getActiveRunId();
   if (activeRunId === null) return;
 
