@@ -29,26 +29,35 @@ RadixScope is a benchmark orchestration tool designed to evaluate the impact of 
 
 ## LIVE STATUS (update after every work session — this is what matters most)
 
-**Last updated:** 2026-09-07T00:04:00+05:30
+**Last updated:** 2026-09-07T00:30:00+05:30
 
 ### Currently working
-- Backend foundation is complete: Config, Contracts, SGLang client, Workload definition, Assembler, Normalizer, Validity, Analysis, and Store modules are implemented.
-- **M7 Runner**: Core state machine (`server/src/benchmark/runner/index.ts`) is fully built and respects all phases (`PREFLIGHT` -> `COMPARE`).
-- **API**: Express server (`server/src/index.ts`) and API router (`server/src/api/index.ts`) are built and integrated with M7/M10.
-- **Frontend**: Full React polling dashboard is built (`web/src/App.tsx`, `index.css`) with premium glassmorphic dark-mode styling.
-- **Mock Server**: `web/mock-server.mjs` is fully functional for UI-only demos.
-- **Ops**: SGLang GPU script is ready at `ops/sglang/launch.sh`. `.gitignore` has been correctly configured.
+- **All 11 backend modules written and `tsc --noEmit` passes with 0 errors** (fixed: analysis map type, validity import depths, cors missing types).
+- **Abhay's test suite merged** (PR #1): `test/api.test.js`, `test/application.test.js`, `test/store.integration.test.js`, `test/startup.test.js` all committed.
+- **`REDIS_SETUP.md`** added by Abhay — follow it to boot Redis locally without Docker.
+- **Frontend mock demo** fully working: `cd web && npm run mock` + `npm run dev` → http://localhost:5173 shows live benchmark UI with provenance badges.
+- **Git in sync**: All changes pushed to `origin/main` (rebased over Abhay's Redis-Branch PR).
 
-### Currently broken
-- Nothing explicitly broken in the codebase.
-- We have not yet run the full end-to-end test on the GPU hardware (waiting for Adi's environment).
+### Currently broken / Not yet validated
+- Real E2E not tested yet (needs Redis running + SGLang on GPU).
+- Server `npm run dev` not smoke-tested with live Redis.
+- Frontend run-history page not built yet (Deep/Rish task).
+- Chart.js cache reuse chart not rendered yet (Deep/Rish task).
+
+### Team status snapshot
+| Person | Assigned | Done | Remaining |
+|--------|----------|------|-----------|
+| Adi | M7 runner, ops/sglang | ✅ Code complete | E2E test on GPU |
+| Abhay | M11 API, entry point, Redis, tests | ✅ Code + tests complete | Smoke test with live Redis |
+| Deep/Rish | Frontend UI | ~40% (basic table done) | Run-list page, charts, INVALID polish |
 
 ### Recent decisions
-- Added `type: "module"` to `web/package.json` to fix Vite configuration parsing errors.
-- Included a `mock-server.mjs` in the `web` directory so the frontend can be developed and demoed without needing Redis or the GPU-heavy SGLang container running.
-- Backend uses `crypto` to hash prompt components at `RUN_RAW` and `RUN_NORM` to structurally verify content equality during `COMPARE`.
+- Added `type: "module"` to `web/package.json` to fix Vite config parsing.
+- Backend uses sorted SHA-256 hashes of component content (not order) for `assertContentEqual`.
+- Repo moved notice from GitHub: new canonical URL is `https://github.com/rishikinger10/RadixScope.git`.
 
 ### Do NOT repeat these mistakes
-- Do not run `npm run dev` in `web/` without ensuring `package.json` has `"type": "module"`, otherwise Vite will fail to parse `vite.config.ts`.
-- Do not forget to CD into `RadixScope` before running commands.
-- Do not run SGLang without `--enable-metrics`; the runner requires this for telemetry.
+- Do not use `&&` in PowerShell — use `;` to chain commands.
+- Do not run `npm install` in `web/` without `--legacy-peer-deps` (Vite v8 peer conflict with plugin-react v4).
+- Do not run SGLang without `--enable-metrics`.
+- Do not forget to `cd RadixScope` before any command — the project is NOT at `C2C/` root.
