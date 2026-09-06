@@ -20,6 +20,21 @@ export default function App() {
   const [projection, setProjection] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [runs, setRuns] = useState<any[]>([]);
+
+  const fetchRuns = async () => {
+    try {
+      const res = await fetch('/api/runs');
+      if (res.ok) {
+        const data = await res.json();
+        setRuns(data.runs || []);
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    fetchRuns();
+  }, []);
 
   const startBenchmark = async () => {
     try {
@@ -55,6 +70,7 @@ export default function App() {
         if (data.phase === 'COMPLETE' || data.phase === 'INVALID') {
           clearInterval(interval);
           setLoading(false);
+          fetchRuns();
         }
       } catch (err) {
         console.error('Polling error:', err);
@@ -65,8 +81,44 @@ export default function App() {
   }, [runId]);
 
   return (
-    <div className="container">
-      <header className="header">
+    <div style={{ display: 'flex', maxWidth: '1400px', margin: '0 auto', gap: '32px', padding: '40px 20px' }}>
+      <div style={{ width: '320px', flexShrink: 0 }}>
+        <div className="glass-panel" style={{ padding: '24px', position: 'sticky', top: '40px' }}>
+          <h2 style={{ margin: '0 0 20px 0', fontSize: '20px' }}>Recent Runs</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {runs.length === 0 ? (
+              <div style={{ color: 'var(--text-secondary)' }}>No runs yet.</div>
+            ) : (
+              runs.map((r, i) => (
+                <div 
+                  key={i} 
+                  style={{ 
+                    padding: '12px', 
+                    background: 'rgba(255,255,255,0.03)', 
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    border: runId === r.runId ? '1px solid var(--accent)' : '1px solid transparent'
+                  }}
+                  onClick={() => setRunId(r.runId)}
+                >
+                  <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    {new Date(r.startTime).toLocaleTimeString()}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '14px' }}>{r.runId.substring(0,8)}</span>
+                    <span className={`badge ${r.phase === 'COMPLETE' ? 'measured' : ''}`}>
+                      {r.phase}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+      
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <header className="header">
         <div>
           <h1 style={{ margin: 0, fontSize: '32px', fontWeight: 800 }}>RadixScope</h1>
           <p style={{ color: 'var(--text-secondary)', margin: '8px 0 0 0' }}>
@@ -89,8 +141,16 @@ export default function App() {
       )}
 
       {projection && projection.phase === 'INVALID' && (
-        <div className="invalid-banner">
-          🚨 RUN INVALID: {projection.verdict?.reason || 'Unknown error'}
+        <div className="invalid-banner" style={{ background: 'rgba(255, 94, 94, 0.15)', borderLeft: '4px solid var(--danger)', padding: '20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '18px' }}>
+              <span style={{ fontSize: '24px' }}>🚨</span> 
+              <span><strong>RUN INVALIDATED</strong></span>
+            </div>
+            <p style={{ margin: '0 0 0 36px', color: '#ffd2d2' }}>
+              {projection.verdict?.reason || 'The benchmark run violated strict execution constraints.'}
+            </p>
+          </div>
         </div>
       )}
 
@@ -124,6 +184,34 @@ export default function App() {
               </div>
             )}
           </div>
+
+          {projection.records && projection.records.length > 0 && (
+            <div style={{ marginTop: '32px' }}>
+              <Bar 
+                data={{
+                  labels: projection.records.map((r: any) => `${r.agent} (${r.mode})`),
+                  datasets: [
+                    {
+                      label: 'Reuse Ratio (%)',
+                      data: projection.records.map((r: any) => r.derived.reuseRatio * 100),
+                      backgroundColor: projection.records.map((r: any) => r.mode === 'NORMALIZED' ? 'rgba(94, 106, 210, 0.8)' : 'rgba(255, 255, 255, 0.2)'),
+                    }
+                  ]
+                }}
+                options={{
+                  responsive: true,
+                  plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Cache Reuse Ratio', color: '#f0f0f5' }
+                  },
+                  scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { color: '#9ba1a6' } },
+                    x: { ticks: { color: '#9ba1a6' } }
+                  }
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -160,6 +248,7 @@ export default function App() {
           </table>
         </div>
       )}
+      </div>
     </div>
   );
 }
