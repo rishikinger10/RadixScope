@@ -12,8 +12,8 @@ import type {
   ServerFingerprint,
   SamplingParams,
   RunDocument,
-} from '../contracts';
-import { LOCKED_SAMPLING } from '../config';
+} from '../../contracts';
+import { LOCKED_SAMPLING } from '../../config';
 
 // ─── resolveTolerance ────────────────────────────────────────────────────────
 // B-4: Returns null if page size cannot be resolved → runner must REFUSE to start

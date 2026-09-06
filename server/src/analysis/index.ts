@@ -115,8 +115,8 @@ export function compare(
   const rawTotal = rawRecords.reduce((s, r) => s + r.native.cachedTokens, 0);
   const normTotal = normRecords.reduce((s, r) => s + r.native.cachedTokens, 0);
 
-  const rawRatios = rawRecords.map(reuseRatio.bind(null));
-  const normRatios = normRecords.map(reuseRatio.bind(null));
+  const rawRatios = rawRecords.map((r) => reuseRatio(r.native));
+  const normRatios = normRecords.map((r) => reuseRatio(r.native));
 
   const rawAvgRatio = rawRatios.reduce((s, r) => s + r, 0) / (rawRatios.length || 1);
   const normAvgRatio = normRatios.reduce((s, r) => s + r, 0) / (normRatios.length || 1);
